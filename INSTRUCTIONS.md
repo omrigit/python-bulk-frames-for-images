@@ -51,6 +51,7 @@ PYTHONPATH=src python -m framebulk.cli apply \
   --text-color black \
   --text-position auto \
   --text-align center \
+  --text-padding 40 \
   --jpeg-quality 90 \
   --preserve-metadata
 ```
@@ -70,7 +71,9 @@ Show all CLI options:
 PYTHONPATH=src python -m framebulk.cli --help
 ```
 
-`--text-position auto` picks the frame side with the most available space (tie-break: bottom, top, left, right).
+Text is always rendered on the bottom frame surface only (for portrait and landscape).
+`--text-position` is accepted for compatibility but currently ignored by design.
+`--text-padding` controls inner safe space from frame corners/edges (default `40`).
 `--jpeg-quality` defaults to `90` for JPEG output.
 `--preserve-metadata` is enabled by default (use `--no-preserve-metadata` to disable).
 The CLI now validates colors/fonts before processing and prints actionable error messages for typos.

@@ -14,6 +14,8 @@ def test_parse_apply_command() -> None:
             "white",
             "--text-align",
             "right",
+            "--text-padding",
+            "30",
             "--jpeg-quality",
             "92",
             "--no-preserve-metadata",
@@ -23,6 +25,7 @@ def test_parse_apply_command() -> None:
     assert str(args.input) == "images"
     assert str(args.output) == "out"
     assert args.text_align == "right"
+    assert args.text_padding == 30
     assert args.jpeg_quality == 92
     assert args.preserve_metadata is False
 

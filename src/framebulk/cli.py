@@ -22,7 +22,7 @@ def build_parser() -> argparse.ArgumentParser:
             "  framebulk apply --input ./images --output ./out --frame-color white \\\n"
             "    --margin-top 60 --margin-right 60 --margin-bottom 140 --margin-left 60 \\\n"
             "    --text \"Shabbat Shalom\" --font-family Arial --font-size 48 \\\n"
-            "    --text-position top --text-align center --jpeg-quality 90 --preserve-metadata\n"
+            "    --text-position top --text-align center --text-padding 40 --jpeg-quality 90 --preserve-metadata\n"
             "  framebulk color-cheatsheet --output ./out/color-cheatsheet.jpg\n\n"
             "Color values support names (white, black, red) and hex (#RRGGBB).\n"
             "When --text-color is omitted, contrast defaults are used based on frame color."
@@ -52,7 +52,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--text-position",
         choices=["auto", "top", "bottom", "left", "right"],
         default="auto",
-        help="Where caption is placed on frame (auto chooses largest available side).",
+        help="Compatibility flag (text is currently always placed on bottom frame).",
     )
     apply_parser.add_argument(
         "--text-align",
@@ -72,6 +72,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--text-color",
         default=None,
         help="Text color (name or hex). Omit to auto-pick contrast.",
+    )
+    apply_parser.add_argument(
+        "--text-padding",
+        type=int,
+        default=40,
+        help="Inner padding in pixels inside bottom frame (default: 40).",
     )
     apply_parser.add_argument(
         "--jpeg-quality",
@@ -164,6 +170,7 @@ def main() -> None:
         font_size=args.font_size,
         min_font_size=args.min_font_size,
         text_color=args.text_color,
+        text_padding=args.text_padding,
         jpeg_quality=args.jpeg_quality,
         preserve_metadata=args.preserve_metadata,
         suffix=args.suffix,

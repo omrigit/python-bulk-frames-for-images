@@ -1,9 +1,17 @@
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from PIL import Image, ImageDraw
+from PIL import Image, ImageChops, ImageDraw
 
-from framebulk.image_ops import _fit_font_size, default_text_color, parse_color, text_coordinates, validate_config
+from framebulk.image_ops import (
+    _fit_font_size,
+    apply_frame_and_text,
+    default_text_color,
+    parse_color,
+    text_coordinates,
+    validate_config,
+)
 from framebulk.models import FrameConfig
 
 
@@ -101,4 +109,98 @@ def test_validate_config_invalid_font_has_actionable_error() -> None:
     )
     with pytest.raises(ValueError, match="list-fonts --contains"):
         validate_config(config)
+
+
+def test_text_never_drawn_on_image_pixels_for_side_position() -> None:
+    src = Image.new("RGB", (120, 80), (10, 120, 220))
+    config = FrameConfig(
+        input_dir=Path("."),
+        output_dir=Path("."),
+        frame_color="white",
+        margin_top=20,
+        margin_right=25,
+        margin_bottom=20,
+        margin_left=25,
+        text="This is a long text that should not cross into image",
+        text_position="left",
+        text_align="center",
+        font_family="Lato-Regular",
+        font_size=28,
+        min_font_size=8,
+        text_color="black",
+    )
+    out = apply_frame_and_text(src, config)
+    image_crop = out.crop((config.margin_left, config.margin_top, config.margin_left + src.width, config.margin_top + src.height))
+    assert ImageChops.difference(image_crop, src).getbbox() is None
+
+
+def test_text_position_flag_does_not_change_bottom_only_rule() -> None:
+    src = Image.new("RGB", (160, 100), (100, 120, 140))
+    base = FrameConfig(
+        input_dir=Path("."),
+        output_dir=Path("."),
+        frame_color="white",
+        margin_top=30,
+        margin_right=30,
+        margin_bottom=80,
+        margin_left=30,
+        text="Bottom only",
+        text_align="center",
+        font_family="Lato-Regular",
+        font_size=24,
+        min_font_size=12,
+        text_color="black",
+    )
+    out_bottom = apply_frame_and_text(src, replace(base, text_position="bottom"))
+    out_top = apply_frame_and_text(src, replace(base, text_position="top"))
+    out_left = apply_frame_and_text(src, replace(base, text_position="left"))
+    assert ImageChops.difference(out_bottom, out_top).getbbox() is None
+    assert ImageChops.difference(out_bottom, out_left).getbbox() is None
+
+
+def test_bottom_alignment_left_center_right_are_distinct() -> None:
+    src = Image.new("RGB", (220, 120), (140, 140, 140))
+    base = FrameConfig(
+        input_dir=Path("."),
+        output_dir=Path("."),
+        frame_color="white",
+        margin_top=30,
+        margin_right=140,
+        margin_bottom=90,
+        margin_left=140,
+        text="Align me",
+        text_position="bottom",
+        font_family="Lato-Regular",
+        font_size=32,
+        min_font_size=12,
+        text_color="black",
+    )
+    out_left = apply_frame_and_text(src, replace(base, text_align="left"))
+    out_center = apply_frame_and_text(src, replace(base, text_align="center"))
+    out_right = apply_frame_and_text(src, replace(base, text_align="right"))
+    assert ImageChops.difference(out_left, out_center).getbbox() is not None
+    assert ImageChops.difference(out_center, out_right).getbbox() is not None
+
+
+def test_text_padding_changes_horizontal_placement() -> None:
+    src = Image.new("RGB", (240, 120), (180, 180, 180))
+    base = FrameConfig(
+        input_dir=Path("."),
+        output_dir=Path("."),
+        frame_color="white",
+        margin_top=20,
+        margin_right=120,
+        margin_bottom=90,
+        margin_left=120,
+        text="Padding test",
+        text_position="bottom",
+        text_align="left",
+        font_family="Lato-Regular",
+        font_size=28,
+        min_font_size=10,
+        text_color="black",
+    )
+    no_pad = apply_frame_and_text(src, replace(base, text_padding=0))
+    padded = apply_frame_and_text(src, replace(base, text_padding=50))
+    assert ImageChops.difference(no_pad, padded).getbbox() is not None
 

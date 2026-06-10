@@ -30,14 +30,17 @@ framebulk apply \
   --text-color black \
   --text-position auto \
   --text-align center \
+  --text-padding 40 \
   --jpeg-quality 90 \
   --preserve-metadata
 ```
 
 ### Notes
 
-- `--text-position auto` picks the frame side with the most available space (tie-break order: bottom, top, left, right).
+- Text is always rendered on the bottom frame only (never on the image itself).
+- `--text-position` is accepted for compatibility but currently ignored by design.
 - `--text-align` controls placement inside the selected side (`left`, `center`, `right`).
+- `--text-padding` keeps space from frame corners/edges (default `40`).
 - If `--text-color` is omitted, contrast defaults are used:
   - white frame -> black text
   - black frame -> white text

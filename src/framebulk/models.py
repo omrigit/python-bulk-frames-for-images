@@ -26,6 +26,7 @@ class FrameConfig:
     font_size: int = 48
     min_font_size: int = 12
     text_color: str | None = None
+    text_padding: int = 40
     jpeg_quality: int = 90
     preserve_metadata: bool = True
     suffix: str = "_framed"

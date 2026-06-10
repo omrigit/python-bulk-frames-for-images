@@ -4,7 +4,7 @@ from dataclasses import replace
 from difflib import get_close_matches
 from typing import Literal
 
-from PIL import Image, ImageColor, ImageDraw, ImageOps
+from PIL import Image, ImageChops, ImageColor, ImageDraw, ImageOps
 
 from framebulk.fonts import FONT_EXTENSIONS, find_system_font, list_system_fonts, load_font
 from framebulk.models import FrameConfig, Orientation, TextAlign, TextPosition
@@ -92,8 +92,6 @@ def _fit_font_size(
 def apply_frame_and_text(image: Image.Image, config: FrameConfig) -> Image.Image:
     normalized = normalize_image(image).convert("RGB")
     width, height = normalized.size
-    orientation = classify_orientation(width, height)
-    position = resolve_text_position(config.text_position, orientation)
 
     out_w = width + config.margin_left + config.margin_right
     out_h = height + config.margin_top + config.margin_bottom
@@ -106,7 +104,44 @@ def apply_frame_and_text(image: Image.Image, config: FrameConfig) -> Image.Image
     draw = ImageDraw.Draw(framed)
     text_color = parse_color(config.text_color or default_text_color(config.frame_color))
 
-    region = text_region(
+    # Product rule: text is always restricted to the bottom frame surface only.
+    # Use full bottom strip width so left/center/right alignment is visually meaningful.
+    x, y, box_w, box_h = (0, config.margin_top + height, out_w, config.margin_bottom)
+    if box_w <= 0 or box_h <= 0:
+        return framed
+
+    pad = max(config.text_padding, 0)
+    inner_x = x + pad
+    inner_y = y + pad
+    inner_w = box_w - (2 * pad)
+    inner_h = box_h - (2 * pad)
+    if inner_w <= 0 or inner_h <= 0:
+        return framed
+
+    max_line_width = max(inner_w, 1)
+    font_size = _fit_font_size(draw, config.text, max_width=max_line_width, config=config)
+    font = load_font(font_size, font_path=config.font_path, font_family=config.font_family)
+    bbox = draw.textbbox((0, 0), config.text, font=font)
+    text_w = bbox[2] - bbox[0]
+    text_h = bbox[3] - bbox[1]
+
+    text_x, text_y = text_coordinates(
+        x=inner_x,
+        y=inner_y,
+        box_w=inner_w,
+        box_h=inner_h,
+        text_w=text_w,
+        text_h=text_h,
+        align=config.text_align,
+        position="bottom",
+    )
+
+    # Draw text on a transparent layer and clip it to frame-only regions.
+    text_layer = Image.new("RGBA", (out_w, out_h), (0, 0, 0, 0))
+    text_draw = ImageDraw.Draw(text_layer)
+    text_draw.text((text_x, text_y), config.text, fill=(*text_color, 255), font=font)
+
+    frame_mask = build_frame_mask(
         out_w=out_w,
         out_h=out_h,
         image_w=width,
@@ -115,32 +150,13 @@ def apply_frame_and_text(image: Image.Image, config: FrameConfig) -> Image.Image
         margin_right=config.margin_right,
         margin_bottom=config.margin_bottom,
         margin_left=config.margin_left,
-        requested_position=position,
-        orientation=orientation,
     )
-    x, y, box_w, box_h, resolved_position = region
-    if box_w <= 0 or box_h <= 0:
-        return framed
+    alpha = text_layer.getchannel("A")
+    text_layer.putalpha(ImageChops.multiply(alpha, frame_mask))
 
-    max_line_width = max((box_w - 10) if resolved_position in ("top", "bottom") else (out_w - 10), 1)
-    font_size = _fit_font_size(draw, config.text, max_width=max_line_width, config=config)
-    font = load_font(font_size, font_path=config.font_path, font_family=config.font_family)
-    bbox = draw.textbbox((0, 0), config.text, font=font)
-    text_w = bbox[2] - bbox[0]
-    text_h = bbox[3] - bbox[1]
-
-    text_x, text_y = text_coordinates(
-        x=x,
-        y=y,
-        box_w=box_w,
-        box_h=box_h,
-        text_w=text_w,
-        text_h=text_h,
-        align=config.text_align,
-        position=resolved_position,
-    )
-    draw.text((text_x, text_y), config.text, fill=text_color, font=font)
-    return framed
+    composed = framed.convert("RGBA")
+    composed.alpha_composite(text_layer)
+    return composed.convert("RGB")
 
 
 def text_region(
@@ -221,6 +237,30 @@ def text_coordinates(
     return text_x, text_y
 
 
+def build_frame_mask(
+    *,
+    out_w: int,
+    out_h: int,
+    image_w: int,
+    image_h: int,
+    margin_top: int,
+    margin_right: int,
+    margin_bottom: int,
+    margin_left: int,
+) -> Image.Image:
+    mask = Image.new("L", (out_w, out_h), 0)
+    draw = ImageDraw.Draw(mask)
+    if margin_top > 0:
+        draw.rectangle((0, 0, out_w - 1, margin_top - 1), fill=255)
+    if margin_bottom > 0:
+        draw.rectangle((0, out_h - margin_bottom, out_w - 1, out_h - 1), fill=255)
+    if margin_left > 0:
+        draw.rectangle((0, margin_top, margin_left - 1, margin_top + image_h - 1), fill=255)
+    if margin_right > 0:
+        draw.rectangle((out_w - margin_right, margin_top, out_w - 1, margin_top + image_h - 1), fill=255)
+    return mask
+
+
 def validate_config(config: FrameConfig) -> FrameConfig:
     config = replace(config)
     margins = [config.margin_top, config.margin_right, config.margin_bottom, config.margin_left]
@@ -232,6 +272,8 @@ def validate_config(config: FrameConfig) -> FrameConfig:
         raise ValueError("Min font size must be >= 1.")
     if config.min_font_size > config.font_size:
         raise ValueError("Min font size cannot exceed font size.")
+    if config.text_padding < 0:
+        raise ValueError("Text padding must be >= 0.")
     if not 1 <= config.jpeg_quality <= 100:
         raise ValueError("JPEG quality must be between 1 and 100.")
     if config.text_align not in ("left", "center", "right"):

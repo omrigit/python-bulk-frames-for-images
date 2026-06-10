@@ -31,6 +31,7 @@ PYTHONPATH=src python -m framebulk.cli apply \
   --text "This is a test let's go" \
   --text-position auto \
   --text-align center \
+  --text-padding 40 \
   --font-family "Comic Sans MS Bold" \
   --font-size 50 \
   --min-font-size 12 \
@@ -56,6 +57,7 @@ PYTHONPATH=src python -m framebulk.cli apply \
   --text "Friday vibes" \
   --text-position bottom \
   --text-align right \
+  --text-padding 60 \
   --font-family "Montserrat-Variable" \
   --font-size 44 \
   --min-font-size 12 \
@@ -81,6 +83,7 @@ PYTHONPATH=src python -m framebulk.cli apply \
   --text "Minimal look" \
   --text-position auto \
   --text-align center \
+  --text-padding 30 \
   --font-family "Lato-Regular" \
   --font-size 34 \
   --min-font-size 12 \
@@ -105,6 +108,7 @@ PYTHONPATH=src python -m framebulk.cli apply \
   --text "זה טקסט לדוגמה" \
   --text-position bottom \
   --text-align center \
+  --text-padding 40 \
   --font-family "Alef-Bold" \
   --font-size 46 \
   --min-font-size 14 \
@@ -130,6 +134,7 @@ PYTHONPATH=src python -m framebulk.cli apply \
   --text "No metadata version" \
   --text-position auto \
   --text-align left \
+  --text-padding 40 \
   --font-family "Assistant-Variable" \
   --font-size 42 \
   --min-font-size 12 \
