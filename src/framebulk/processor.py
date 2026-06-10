@@ -8,6 +8,7 @@ from framebulk.image_ops import apply_frame_and_text, validate_config
 from framebulk.models import BatchResult, FrameConfig
 
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+EXIF_ORIENTATION_TAG = 274
 
 
 def is_supported_image(path: Path) -> bool:
@@ -16,6 +17,19 @@ def is_supported_image(path: Path) -> bool:
 
 def output_path_for(source: Path, output_dir: Path, suffix: str) -> Path:
     return output_dir / f"{source.stem}{suffix}{source.suffix.lower()}"
+
+
+def normalize_exif_orientation(exif_bytes: bytes | None) -> bytes | None:
+    if not exif_bytes:
+        return None
+    try:
+        exif = Image.Exif()
+        exif.load(exif_bytes)
+        exif[EXIF_ORIENTATION_TAG] = 1
+        return exif.tobytes()
+    except Exception:  # noqa: BLE001
+        # If EXIF bytes are malformed, skip preserving EXIF rather than failing processing.
+        return None
 
 
 def build_save_kwargs(
@@ -29,8 +43,9 @@ def build_save_kwargs(
         kwargs["quality"] = config.jpeg_quality
 
     if config.preserve_metadata:
-        if exif_bytes:
-            kwargs["exif"] = exif_bytes
+        normalized_exif = normalize_exif_orientation(exif_bytes)
+        if normalized_exif:
+            kwargs["exif"] = normalized_exif
         if icc_profile:
             kwargs["icc_profile"] = icc_profile
     return kwargs

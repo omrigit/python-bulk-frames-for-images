@@ -7,12 +7,12 @@ This page is intentionally high-level and easy to copy/paste.
 Open terminal in the project folder and activate the virtual environment:
 
 ```bash
-cd /Users/omri/repositories-cursor/bulk-add-frames-to-images
+cd /Users/main/repositories-cursor/bulk-add-frames-to-images
 source .venv/bin/activate
 ```
 
 All examples below use:
-- input folder: `/Users/omri/BULK-FRAME-TRIES/001`
+- input folder: `/Users/main/BULK-FRAME-TRIES/001`
 - output folder: different per example
 
 ---
@@ -21,8 +21,8 @@ All examples below use:
 
 ```bash
 PYTHONPATH=src python -m framebulk.cli apply \
-  --input /Users/omri/BULK-FRAME-TRIES/001 \
-  --output /Users/omri/BULK-FRAME-TRIES/001/out_example_1 \
+  --input /Users/main/BULK-FRAME-TRIES/001 \
+  --output /Users/main/BULK-FRAME-TRIES/001/out_example_1 \
   --frame-color white \
   --margin-top 200 \
   --margin-right 200 \
@@ -47,8 +47,8 @@ PYTHONPATH=src python -m framebulk.cli apply \
 
 ```bash
 PYTHONPATH=src python -m framebulk.cli apply \
-  --input /Users/omri/BULK-FRAME-TRIES/001 \
-  --output /Users/omri/BULK-FRAME-TRIES/001/out_example_2 \
+  --input /Users/main/BULK-FRAME-TRIES/001 \
+  --output /Users/main/BULK-FRAME-TRIES/001/out_example_2 \
   --frame-color black \
   --margin-top 160 \
   --margin-right 160 \
@@ -73,8 +73,8 @@ PYTHONPATH=src python -m framebulk.cli apply \
 
 ```bash
 PYTHONPATH=src python -m framebulk.cli apply \
-  --input /Users/omri/BULK-FRAME-TRIES/001 \
-  --output /Users/omri/BULK-FRAME-TRIES/001/out_example_3 \
+  --input /Users/main/BULK-FRAME-TRIES/001 \
+  --output /Users/main/BULK-FRAME-TRIES/001/out_example_3 \
   --frame-color white \
   --margin-top 80 \
   --margin-right 80 \
@@ -98,8 +98,8 @@ PYTHONPATH=src python -m framebulk.cli apply \
 
 ```bash
 PYTHONPATH=src python -m framebulk.cli apply \
-  --input /Users/omri/BULK-FRAME-TRIES/001 \
-  --output /Users/omri/BULK-FRAME-TRIES/001/out_example_4 \
+  --input /Users/main/BULK-FRAME-TRIES/001 \
+  --output /Users/main/BULK-FRAME-TRIES/001/out_example_4 \
   --frame-color white \
   --margin-top 120 \
   --margin-right 120 \
@@ -124,8 +124,8 @@ PYTHONPATH=src python -m framebulk.cli apply \
 
 ```bash
 PYTHONPATH=src python -m framebulk.cli apply \
-  --input /Users/omri/BULK-FRAME-TRIES/001 \
-  --output /Users/omri/BULK-FRAME-TRIES/001/out_example_5 \
+  --input /Users/main/BULK-FRAME-TRIES/001 \
+  --output /Users/main/BULK-FRAME-TRIES/001/out_example_5 \
   --frame-color white \
   --margin-top 180 \
   --margin-right 180 \

@@ -8,7 +8,7 @@ This guide walks you through running `framebulk` with a concrete example:
 ## 1) Open terminal in project folder
 
 ```bash
-cd /Users/omri/repositories-cursor/bulk-add-frames-to-images
+cd /Users/main/repositories-cursor/bulk-add-frames-to-images
 ```
 
 ## 2) Create and activate a virtual environment
@@ -156,7 +156,7 @@ PYTHONPATH=src python -m framebulk.cli apply \
 Activate environment (once per terminal session):
 
 ```bash
-cd /Users/omri/repositories-cursor/bulk-add-frames-to-images
+cd /Users/main/repositories-cursor/bulk-add-frames-to-images
 source .venv/bin/activate
 ```
 
@@ -200,8 +200,8 @@ Apply frames with all major flags (default settings shown explicitly):
 
 ```bash
 PYTHONPATH=src python -m framebulk.cli apply \
-  --input /Users/omri/BULK-FRAME-TRIES/001 \
-  --output /Users/omri/BULK-FRAME-TRIES/001/out \
+  --input /Users/main/BULK-FRAME-TRIES/001 \
+  --output /Users/main/BULK-FRAME-TRIES/001/out \
   --frame-color white \
   --margin-top 200 \
   --margin-right 200 \
@@ -223,8 +223,8 @@ Same command with metadata disabled:
 
 ```bash
 PYTHONPATH=src python -m framebulk.cli apply \
-  --input /Users/omri/BULK-FRAME-TRIES/001 \
-  --output /Users/omri/BULK-FRAME-TRIES/001/out_no_meta \
+  --input /Users/main/BULK-FRAME-TRIES/001 \
+  --output /Users/main/BULK-FRAME-TRIES/001/out_no_meta \
   --frame-color white \
   --margin-top 200 \
   --margin-right 200 \

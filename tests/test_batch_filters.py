@@ -1,7 +1,15 @@
 from pathlib import Path
 
+from PIL import Image
+
 from framebulk.models import FrameConfig
-from framebulk.processor import build_save_kwargs, is_supported_image, output_path_for
+from framebulk.processor import (
+    EXIF_ORIENTATION_TAG,
+    build_save_kwargs,
+    is_supported_image,
+    normalize_exif_orientation,
+    output_path_for,
+)
 
 
 def test_supported_extension_detection(tmp_path: Path) -> None:
@@ -31,9 +39,13 @@ def test_save_kwargs_jpeg_defaults_and_metadata() -> None:
         margin_left=100,
         text="x",
     )
-    kwargs = build_save_kwargs(".jpg", config, b"exif-bytes", b"icc-bytes")
+    exif = Image.Exif()
+    exif[EXIF_ORIENTATION_TAG] = 8
+    kwargs = build_save_kwargs(".jpg", config, exif.tobytes(), b"icc-bytes")
     assert kwargs["quality"] == 90
-    assert kwargs["exif"] == b"exif-bytes"
+    out_exif = Image.Exif()
+    out_exif.load(kwargs["exif"])
+    assert out_exif.get(EXIF_ORIENTATION_TAG) == 1
     assert kwargs["icc_profile"] == b"icc-bytes"
 
 
@@ -53,4 +65,8 @@ def test_save_kwargs_no_metadata_if_disabled() -> None:
     assert kwargs["quality"] == 90
     assert "exif" not in kwargs
     assert "icc_profile" not in kwargs
+
+
+def test_normalize_exif_orientation_handles_invalid_bytes() -> None:
+    assert normalize_exif_orientation(b"not-real-exif") is None
 
